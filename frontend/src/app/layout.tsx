@@ -6,6 +6,7 @@ import ThemeToggle from "@/components/ThemeToggle"
 import MouseGlow from "@/components/MouseGlow"
 import Snowfall from "@/components/Snowfall"
 import Header from "@/components/layout/Header"
+import { Toaster } from "sonner"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -24,6 +25,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Snowfall />
           <Header />
           <main className="pt-16">{children}</main>
+          <Toaster richColors position="top-center" />
         </AuthProvider>
       </body>
     </html>

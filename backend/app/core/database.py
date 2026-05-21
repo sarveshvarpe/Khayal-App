@@ -14,7 +14,18 @@ if settings.DATABASE_URL:
 else:
     DATABASE_URL = f"postgresql+asyncpg://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}@{settings.POSTGRES_HOST}:{settings.POSTGRES_PORT}/{settings.POSTGRES_DB}"
 
-engine = create_async_engine(DATABASE_URL, echo=False)
+engine = create_async_engine(
+    DATABASE_URL,
+    echo=False,
+    # Required for Supabase PgBouncer (transaction mode) compatibility
+    pool_size=5,
+    max_overflow=10,
+    pool_pre_ping=True,
+    connect_args={
+        "prepared_statement_cache_size": 0,  # PgBouncer doesn't support prepared statements
+        "ssl": "prefer",  # Use SSL when available
+    } if settings.DATABASE_URL else {},
+)
 async_session_factory = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
 
