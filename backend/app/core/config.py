@@ -45,7 +45,7 @@ class Settings(BaseSettings):
     SMTP_USER: Optional[str] = None
     SMTP_PASSWORD: Optional[str] = None
 
-    CORS_ORIGINS: list[str] = ["http://localhost:3000"]
+    CORS_ORIGINS: list[str] = ["http://localhost:3000", "https://khayal-ai.vercel.app"]
     FRONTEND_URL: Optional[str] = None  # Vercel URL added to CORS in production
 
     class Config:
