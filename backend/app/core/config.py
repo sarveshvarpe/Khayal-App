@@ -7,12 +7,18 @@ class Settings(BaseSettings):
     API_V1_PREFIX: str = "/api/v1"
     DEBUG: bool = True
 
+    # Production: set DATABASE_URL to full connection string (e.g. Supabase)
+    # Local dev: uses individual POSTGRES_* fields below
+    DATABASE_URL: Optional[str] = None
     POSTGRES_USER: str = "postgres"
     POSTGRES_PASSWORD: str = "postgres"
     POSTGRES_HOST: str = "localhost"
     POSTGRES_PORT: str = "5432"
     POSTGRES_DB: str = "khayal_db"
 
+    # Production: set REDIS_URL for Upstash (rediss://...)
+    # Local dev: uses REDIS_HOST/REDIS_PORT below
+    REDIS_URL: Optional[str] = None
     REDIS_HOST: str = "localhost"
     REDIS_PORT: int = 6379
 
@@ -40,6 +46,7 @@ class Settings(BaseSettings):
     SMTP_PASSWORD: Optional[str] = None
 
     CORS_ORIGINS: list[str] = ["http://localhost:3000"]
+    FRONTEND_URL: Optional[str] = None  # Vercel URL added to CORS in production
 
     class Config:
         env_file = ".env"

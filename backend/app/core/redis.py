@@ -5,13 +5,23 @@ from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
-redis_client = redis.Redis(
-    host=settings.REDIS_HOST, 
-    port=settings.REDIS_PORT, 
-    decode_responses=True,
-    socket_connect_timeout=1,
-    socket_timeout=1
-)
+# Production: use REDIS_URL (Upstash with TLS)
+# Local dev: use REDIS_HOST/REDIS_PORT
+if settings.REDIS_URL:
+    redis_client = redis.from_url(
+        settings.REDIS_URL,
+        decode_responses=True,
+        socket_connect_timeout=2,
+        socket_timeout=2
+    )
+else:
+    redis_client = redis.Redis(
+        host=settings.REDIS_HOST,
+        port=settings.REDIS_PORT,
+        decode_responses=True,
+        socket_connect_timeout=1,
+        socket_timeout=1
+    )
 
 # In-memory fallback when Redis is unavailable
 _memory_store: dict[str, tuple[str, float]] = {}
