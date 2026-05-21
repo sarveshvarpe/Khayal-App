@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { useAuth } from "@/lib/auth-context"
@@ -9,35 +9,20 @@ import { Input } from "@/components/ui/Input"
 import { motion } from "framer-motion"
 import { Activity, Mail, Lock, Eye, EyeOff } from "lucide-react"
 import { toast } from "sonner"
-import Script from "next/script"
-
-declare global {
-  interface Window {
-    google?: {
-      accounts: {
-        id: {
-          initialize: (config: any) => void
-          renderButton: (element: HTMLElement, config: any) => void
-          prompt: () => void
-        }
-      }
-    }
-  }
-}
+import { GoogleLogin } from "@react-oauth/google"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [gsiLoaded, setGsiLoaded] = useState(false)
   const { login, googleLogin } = useAuth()
   const router = useRouter()
 
-  const handleGoogleResponse = useCallback(async (response: any) => {
+  const handleGoogleSuccess = async (credentialResponse: any) => {
     setLoading(true)
     try {
-      await googleLogin(response.credential)
+      await googleLogin(credentialResponse.credential)
       toast.success("Welcome! Signed in with Google.")
       router.push("/dashboard")
     } catch (err: any) {
@@ -45,33 +30,7 @@ export default function LoginPage() {
     } finally {
       setLoading(false)
     }
-  }, [googleLogin, router])
-
-  useEffect(() => {
-    if (!gsiLoaded || !window.google) return
-
-    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
-    if (!clientId) {
-      console.warn("NEXT_PUBLIC_GOOGLE_CLIENT_ID not set")
-      return
-    }
-
-    window.google.accounts.id.initialize({
-      client_id: clientId,
-      callback: handleGoogleResponse,
-    })
-
-    const btnEl = document.getElementById("google-signin-btn")
-    if (btnEl) {
-      window.google.accounts.id.renderButton(btnEl, {
-        theme: "outline",
-        size: "large",
-        width: "100%",
-        text: "continue_with",
-        shape: "pill",
-      })
-    }
-  }, [gsiLoaded, handleGoogleResponse])
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -89,11 +48,6 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-[90vh] flex items-center justify-center px-4">
-      <Script
-        src="https://accounts.google.com/gsi/client"
-        strategy="afterInteractive"
-        onLoad={() => setGsiLoaded(true)}
-      />
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -158,7 +112,16 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <div id="google-signin-btn" className="flex justify-center" />
+          <div className="flex justify-center w-full [&>div]:w-full [&>div>div]:w-full [&_iframe]:!w-full [&_iframe]:!max-w-none">
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={() => toast.error("Google Login Failed")}
+              theme="outline"
+              size="large"
+              width="100%"
+              shape="pill"
+            />
+          </div>
 
           <p className="text-center text-sm text-gray-500 mt-6">
             Don&apos;t have an account?{" "}

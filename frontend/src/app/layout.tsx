@@ -8,6 +8,8 @@ import Snowfall from "@/components/Snowfall"
 import Header from "@/components/layout/Header"
 import { Toaster } from "sonner"
 
+import { GoogleOAuthProvider } from "@react-oauth/google"
+
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
@@ -19,14 +21,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        <AuthProvider>
-          <ThemeToggle />
-          <MouseGlow />
-          <Snowfall />
-          <Header />
-          <main className="pt-16">{children}</main>
-          <Toaster richColors position="top-center" />
-        </AuthProvider>
+        <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!}>
+          <AuthProvider>
+            <ThemeToggle />
+            <MouseGlow />
+            <Snowfall />
+            <Header />
+            <main className="pt-16">{children}</main>
+            <Toaster richColors position="top-center" />
+          </AuthProvider>
+        </GoogleOAuthProvider>
       </body>
     </html>
   )
