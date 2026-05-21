@@ -1,0 +1,34 @@
+# Khayal Healthcare Platform
+
+## Dependencies
+node_modules/
+venv/
+.venv/
+__pycache__/
+*.pyc
+.env
+.env.local
+tsconfig.tsbuildinfo
+
+## Build
+.next/
+dist/
+build/
+
+## Uploads
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+## IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+## OS
+.DS_Store
+Thumbs.db
+
+## Logs
+*.log
+logs/
