@@ -1,48 +1,57 @@
 import logging
-import aiosmtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
+import traceback
+from fastapi_mail import FastMail, MessageSchema, ConnectionConfig, MessageType
 from app.core.config import settings
+from pydantic import EmailStr
 
 logger = logging.getLogger(__name__)
 
+# FastAPI-Mail Connection Config
+# The user specifically requested 60s timeout, STARTTLS, and Gmail SMTP settings
+# using existing Railway env vars.
+try:
+    conf = ConnectionConfig(
+        MAIL_USERNAME=settings.SMTP_USER,
+        MAIL_PASSWORD=settings.SMTP_PASSWORD,
+        MAIL_FROM=settings.SMTP_USER,  # Always fallback to SMTP_USER as requested
+        MAIL_PORT=settings.SMTP_PORT or 587,
+        MAIL_SERVER=settings.SMTP_HOST or "smtp.gmail.com",
+        MAIL_STARTTLS=True,
+        MAIL_SSL_TLS=False,
+        USE_CREDENTIALS=True,
+        VALIDATE_CERTS=True,
+        TIMEOUT=60
+    )
+    fast_mail = FastMail(conf)
+except Exception as e:
+    logger.error(f"Failed to initialize FastAPI-Mail config: {e}")
+    conf = None
+    fast_mail = None
+
 
 async def send_email(to: str, subject: str, body: str) -> bool:
-    if not settings.SMTP_USER or not settings.SMTP_PASSWORD:
-        logger.warning("SMTP credentials not configured — set SMTP_USER and SMTP_PASSWORD in .env")
-        raise ValueError("SMTP credentials not configured in environment")
-
-    msg = MIMEMultipart("alternative")
-    msg["From"] = settings.SMTP_USER
-    msg["To"] = to
-    msg["Subject"] = subject
-    msg.attach(MIMEText(body, "html"))
-
-    try:
-        print("SMTP HOST:", settings.SMTP_HOST)
-        print("SMTP PORT:", settings.SMTP_PORT)
-        print("SMTP USER:", settings.SMTP_USER)
+    if not conf or not fast_mail:
+        raise ValueError("SMTP credentials not configured properly in environment.")
         
-        logger.info(f"Connecting to SMTP {settings.SMTP_HOST}:{settings.SMTP_PORT} for {to}")
-        await aiosmtplib.send(
-            msg,
-            hostname=settings.SMTP_HOST,
-            port=settings.SMTP_PORT,
-            username=settings.SMTP_USER,
-            password=settings.SMTP_PASSWORD,
-            use_tls=False,
-            start_tls=True,
-        )
+    print("SMTP HOST:", conf.MAIL_SERVER)
+    print("SMTP USER:", conf.MAIL_USERNAME)
+    
+    message = MessageSchema(
+        subject=subject,
+        recipients=[to],
+        body=body,
+        subtype=MessageType.html
+    )
+    
+    try:
+        logger.info(f"Connecting to SMTP {conf.MAIL_SERVER}:{conf.MAIL_PORT} for {to}")
+        await fast_mail.send_message(message)
         logger.info(f"Email sent successfully to {to}")
         return True
-    except aiosmtplib.SMTPAuthenticationError as e:
-        logger.error(f"SMTP authentication failed — check SMTP_USER/SMTP_PASSWORD in .env: {e}")
-        raise e
-    except aiosmtplib.SMTPConnectError as e:
-        logger.error(f"SMTP connection failed to {settings.SMTP_HOST}:{settings.SMTP_PORT}: {e}")
-        raise e
     except Exception as e:
         logger.error(f"Failed to send email to {to}: {type(e).__name__}: {e}")
+        print("EMAIL ERROR:", str(e))
+        traceback.print_exc()
         raise e
 
 
@@ -83,4 +92,3 @@ async def send_reset_password_email(email: str, token: str) -> bool:
     </html>
     """
     return await send_email(email, subject, body)
-

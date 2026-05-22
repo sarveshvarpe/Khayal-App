@@ -33,12 +33,12 @@ export default function SignupPage() {
     setLoading(true)
     try {
       await signup(form)
-      const otpRes = await api.post<{ message: string; sent?: boolean; otp?: string }>("/auth/send-otp", { email: form.email })
+      const otpRes = await api.post<{ message: string; success?: boolean; sent?: boolean; otp?: string }>("/auth/send-otp", { email: form.email })
       setStep("otp")
-      if (otpRes.sent) {
-        toast.success("OTP sent to your email")
+      if (otpRes.success || otpRes.sent) {
+        toast.success(otpRes.message || "OTP sent to your email")
       } else {
-        toast.warning("Email delivery failed — use the code shown below")
+        toast.warning(otpRes.message || "Email delivery failed — use the code shown below")
         setOtpValue(otpRes.otp || "")
       }
     } catch (err: any) {
@@ -63,13 +63,13 @@ export default function SignupPage() {
 
   const handleResendOTP = async () => {
     try {
-      const res = await api.post<{ sent?: boolean; otp?: string }>("/auth/resend-otp", { email: form.email })
-      if (res.sent) {
+      const res = await api.post<{ message: string; success?: boolean; sent?: boolean; otp?: string }>("/auth/resend-otp", { email: form.email })
+      if (res.success || res.sent) {
         setOtpValue("")
-        toast.success("OTP resent to your email")
+        toast.success(res.message || "OTP resent to your email")
       } else {
         setOtpValue(res.otp || "")
-        toast.warning("Email delivery failed — use the code shown below")
+        toast.warning(res.message || "Email delivery failed — use the code shown below")
       }
     } catch {
       toast.error("Failed to resend OTP")

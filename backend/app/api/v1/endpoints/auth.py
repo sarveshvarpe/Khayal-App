@@ -95,7 +95,7 @@ async def send_otp(data: OTPRequest, db: AsyncSession = Depends(get_db)):
     
     try:
         await send_otp_email(data.email, otp)
-        return {"message": "OTP sent to your email", "sent": True}
+        return {"success": True, "message": "OTP sent successfully", "sent": True}
     except Exception as e:
         print("SEND OTP EMAIL ERROR:", str(e))
         traceback.print_exc()
@@ -131,7 +131,7 @@ async def resend_otp(data: OTPRequest, db: AsyncSession = Depends(get_db)):
     
     try:
         await send_otp_email(data.email, otp)
-        return {"message": "OTP resent to your email", "sent": True}
+        return {"success": True, "message": "OTP resent successfully", "sent": True}
     except Exception as e:
         print("RESEND OTP EMAIL ERROR:", str(e))
         traceback.print_exc()
