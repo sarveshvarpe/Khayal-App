@@ -99,7 +99,7 @@ async def send_otp(data: OTPRequest, db: AsyncSession = Depends(get_db)):
     except Exception as e:
         print("SEND OTP EMAIL ERROR:", str(e))
         traceback.print_exc()
-        return {"message": f"Failed to send email: {str(e)}", "sent": False, "otp": otp}
+        raise HTTPException(status_code=500, detail=f"Failed to send email: {str(e)}")
 
 
 @router.post("/verify-otp")
@@ -135,7 +135,7 @@ async def resend_otp(data: OTPRequest, db: AsyncSession = Depends(get_db)):
     except Exception as e:
         print("RESEND OTP EMAIL ERROR:", str(e))
         traceback.print_exc()
-        return {"message": f"Failed to resend email: {str(e)}", "sent": False, "otp": otp}
+        raise HTTPException(status_code=500, detail=f"Failed to resend email: {str(e)}")
 
 
 @router.post("/google", response_model=TokenResponse)
@@ -223,7 +223,7 @@ async def forgot_password(data: ForgotPasswordRequest, db: AsyncSession = Depend
     except Exception as e:
         print("FORGOT PASSWORD EMAIL ERROR:", str(e))
         traceback.print_exc()
-        return {"message": f"SMTP authentication failed: {str(e)}", "sent": False}
+        raise HTTPException(status_code=500, detail=f"SMTP authentication failed: {str(e)}")
 
 
 @router.post("/reset-password")
@@ -257,4 +257,4 @@ async def test_email():
     except Exception as e:
         print("TEST EMAIL ERROR:", str(e))
         traceback.print_exc()
-        return {"success": False, "message": f"Exception occurred: {str(e)}"}
+        raise HTTPException(status_code=500, detail=f"Exception occurred: {str(e)}")

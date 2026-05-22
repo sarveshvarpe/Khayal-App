@@ -19,6 +19,10 @@ async def send_email(to: str, subject: str, body: str) -> bool:
     msg.attach(MIMEText(body, "html"))
 
     try:
+        print("SMTP HOST:", settings.SMTP_HOST)
+        print("SMTP PORT:", settings.SMTP_PORT)
+        print("SMTP USER:", settings.SMTP_USER)
+        
         logger.info(f"Connecting to SMTP {settings.SMTP_HOST}:{settings.SMTP_PORT} for {to}")
         await aiosmtplib.send(
             msg,
