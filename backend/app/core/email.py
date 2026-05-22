@@ -20,7 +20,7 @@ try:
         MAIL_SSL_TLS=False,
         USE_CREDENTIALS=True,
         VALIDATE_CERTS=True,
-        TIMEOUT=120
+        TIMEOUT=5
     )
     fast_mail = FastMail(conf)
 except Exception as e:
@@ -43,7 +43,7 @@ async def send_email(to: str, subject: str, body: str) -> bool:
         subtype=MessageType.html
     )
     
-    max_retries = 3
+    max_retries = 1
     for attempt in range(max_retries):
         try:
             logger.info(f"Connecting to SMTP {conf.MAIL_SERVER}:{conf.MAIL_PORT} for {to} (Attempt {attempt+1}/{max_retries})")
