@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 try:
     conf = ConnectionConfig(
         MAIL_USERNAME=settings.SMTP_USER,
-        MAIL_PASSWORD=settings.SMTP_PASSWORD,
+        MAIL_PASSWORD=settings.SMTP_PASSWORD.replace(" ", "") if settings.SMTP_PASSWORD else "",
         MAIL_FROM=settings.SMTP_USER,
         MAIL_PORT=465,
         MAIL_SERVER="smtp.gmail.com",
