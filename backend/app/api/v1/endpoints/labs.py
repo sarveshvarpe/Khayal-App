@@ -13,7 +13,7 @@ from app.schemas.schemas import LabTestCreate
 router = APIRouter()
 
 
-@router.get("/")
+@router.get("")
 async def get_lab_tests(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -24,7 +24,7 @@ async def get_lab_tests(
     return result.scalars().all()
 
 
-@router.post("/")
+@router.post("")
 async def book_lab_test(
     data: LabTestCreate,
     db: AsyncSession = Depends(get_db),

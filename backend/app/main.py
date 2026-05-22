@@ -30,13 +30,19 @@ async def lifespan(app: FastAPI):
     yield
 
 
+from starlette.middleware.httpsredirect import HTTPSRedirectMiddleware
+
 app = FastAPI(
     lifespan=lifespan,
     title=settings.APP_NAME,
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
+    redirect_slashes=False,
 )
+
+# Force HTTPS redirect behind proxy
+app.add_middleware(HTTPSRedirectMiddleware)
 
 # CORS Configuration
 origins = [

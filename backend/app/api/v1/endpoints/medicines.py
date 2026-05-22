@@ -30,7 +30,7 @@ class AIMedicineRecommendRequest(BaseModel):
     disease_description: str
 
 
-@router.get("/", response_model=list[MedicineResponse])
+@router.get("", response_model=list[MedicineResponse])
 async def get_medicines(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -41,7 +41,7 @@ async def get_medicines(
     return result.scalars().all()
 
 
-@router.post("/", response_model=MedicineResponse)
+@router.post("", response_model=MedicineResponse)
 async def create_medicine(
     data: MedicineCreate,
     db: AsyncSession = Depends(get_db),

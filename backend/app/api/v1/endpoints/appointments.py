@@ -27,7 +27,7 @@ class DoctorSearchRequest(BaseModel):
     specialization: str = ""
 
 
-@router.get("/", response_model=list[AppointmentResponse])
+@router.get("", response_model=list[AppointmentResponse])
 async def get_appointments(
     status_filter: Optional[str] = None,
     db: AsyncSession = Depends(get_db),
@@ -41,7 +41,7 @@ async def get_appointments(
     return result.scalars().all()
 
 
-@router.post("/", response_model=AppointmentResponse)
+@router.post("", response_model=AppointmentResponse)
 async def create_appointment(
     data: AppointmentCreate,
     db: AsyncSession = Depends(get_db),
