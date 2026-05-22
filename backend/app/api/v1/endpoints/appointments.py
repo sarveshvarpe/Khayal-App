@@ -47,11 +47,16 @@ async def create_appointment(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    appointment = Appointment(user_id=current_user.id, **data.model_dump())
-    db.add(appointment)
-    await db.commit()
-    await db.refresh(appointment)
-    return appointment
+    try:
+        appointment = Appointment(user_id=current_user.id, **data.model_dump())
+        db.add(appointment)
+        await db.commit()
+        await db.refresh(appointment)
+        return appointment
+    except Exception as e:
+        logger.error(f"Error creating appointment: {e}")
+        await db.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to create appointment: {str(e)[:100]}")
 
 
 @router.put("/{appointment_id}/cancel")

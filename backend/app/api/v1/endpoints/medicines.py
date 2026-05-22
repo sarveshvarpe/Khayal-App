@@ -325,17 +325,22 @@ async def bulk_add_medicines(
     current_user: User = Depends(get_current_user),
 ):
     """Add multiple medicines at once (from AI recommendations)."""
-    added = []
-    for med_data in medicines:
-        medicine = Medicine(user_id=current_user.id, **med_data.model_dump())
-        db.add(medicine)
-        added.append(medicine)
+    try:
+        added = []
+        for med_data in medicines:
+            medicine = Medicine(user_id=current_user.id, **med_data.model_dump())
+            db.add(medicine)
+            added.append(medicine)
 
-    await db.commit()
-    for m in added:
-        await db.refresh(m)
+        await db.commit()
+        for m in added:
+            await db.refresh(m)
 
-    return {"message": f"{len(added)} medicines added", "count": len(added)}
+        return {"message": f"{len(added)} medicines added", "count": len(added)}
+    except Exception as e:
+        logger.error(f"Error in bulk-add: {e}")
+        await db.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to add medicines: {str(e)[:100]}")
 
 
 @router.get("/prescriptions")

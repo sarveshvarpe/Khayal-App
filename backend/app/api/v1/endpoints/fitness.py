@@ -34,11 +34,15 @@ async def add_fitness_progress(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    progress = FitnessProgress(user_id=current_user.id, **data.model_dump())
-    db.add(progress)
-    await db.commit()
-    await db.refresh(progress)
-    return progress
+    try:
+        progress = FitnessProgress(user_id=current_user.id, **data.model_dump())
+        db.add(progress)
+        await db.commit()
+        await db.refresh(progress)
+        return progress
+    except Exception as e:
+        await db.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to add fitness progress: {str(e)[:100]}")
 
 
 @router.get("/stats")

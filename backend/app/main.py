@@ -38,10 +38,11 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
-# CORS Configuration — allow production + dev + preview deployments
+# CORS Configuration
 origins = [
     "http://localhost:3000",
     "https://khayal-ai.vercel.app",
+    "https://khayal-ai-git-main-sarvesh-varpe-s-projects.vercel.app",
 ]
 
 # Add FRONTEND_URL from env if set (for flexibility)
