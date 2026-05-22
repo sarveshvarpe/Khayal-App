@@ -15,6 +15,11 @@ const inter = Inter({ subsets: ["latin"] })
 export const metadata: Metadata = {
   title: "Khayal - AI-Powered Healthcare Platform",
   description: "Your complete AI-powered healthcare and wellness companion",
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon-16x16.png",
+    apple: "/apple-touch-icon.png",
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
