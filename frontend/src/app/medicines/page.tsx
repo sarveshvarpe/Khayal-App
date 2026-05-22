@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
+import { useRouter } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
 import { api } from "@/lib/api"
 import { Button } from "@/components/ui/Button"
@@ -35,7 +36,8 @@ interface AIRecommendation {
 }
 
 export default function MedicinesPage() {
-  const { user } = useAuth()
+  const { user, loading } = useAuth()
+  const router = useRouter()
   const [medicines, setMedicines] = useState<Medicine[]>([])
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState({
@@ -59,9 +61,13 @@ export default function MedicinesPage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
+    if (!loading && !user) {
+      router.push("/login")
+      return
+    }
     if (!user) return
     api.get<Medicine[]>("/medicines").then(setMedicines).catch(() => {})
-  }, [user])
+  }, [user, loading, router])
 
   // === Step 1: Scan Prescription ===
   const handleScan = async (e: React.ChangeEvent<HTMLInputElement>) => {

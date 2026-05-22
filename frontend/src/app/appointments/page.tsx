@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { useRouter } from "next/navigation"
 import dynamic from "next/dynamic"
 import { useAuth } from "@/lib/auth-context"
 import { api } from "@/lib/api"
@@ -53,7 +54,8 @@ const COMMON_CONDITIONS = [
 ]
 
 export default function AppointmentsPage() {
-  const { user } = useAuth()
+  const { user, loading } = useAuth()
+  const router = useRouter()
   const [appointments, setAppointments] = useState<Appointment[]>([])
   const [showForm, setShowForm] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
@@ -80,9 +82,13 @@ export default function AppointmentsPage() {
 
   // Load existing appointments
   useEffect(() => {
+    if (!loading && !user) {
+      router.push("/login")
+      return
+    }
     if (!user) return
     api.get<Appointment[]>("/appointments").then(setAppointments).catch(() => {})
-  }, [user])
+  }, [user, loading, router])
 
   // Auto-detect location on mount
   useEffect(() => {
