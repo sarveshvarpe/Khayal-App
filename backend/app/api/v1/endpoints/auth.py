@@ -4,6 +4,7 @@ from sqlalchemy import select
 from datetime import timedelta
 import random
 import json
+import uuid
 
 from app.core.database import get_db
 from app.core.security import (
@@ -12,7 +13,7 @@ from app.core.security import (
 )
 from app.core.config import settings
 from app.core.redis import otp_store
-from app.core.email import send_otp_email
+from app.core.email import send_otp_email, send_reset_password_email
 from app.models.user import User, UserRole
 from app.schemas.schemas import (
     UserCreate, UserLogin, UserResponse, TokenResponse,
@@ -203,12 +204,12 @@ async def forgot_password(data: ForgotPasswordRequest, db: AsyncSession = Depend
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    otp = str(random.randint(100000, 999999))
-    await otp_store.set(f"reset_otp:{data.email}", otp, 300)
-    emailed = await send_otp_email(data.email, otp)
+    otp = str(uuid.uuid4())
+    await otp_store.set(f"reset_otp:{data.email}", otp, 900)  # 15 mins
+    emailed = await send_reset_password_email(data.email, otp)
     if emailed:
-        return {"message": "Reset OTP sent to your email", "sent": True}
-    return {"message": "Reset OTP sent to your email", "sent": False, "otp": otp}
+        return {"message": "Password reset link sent to your email", "sent": True}
+    return {"message": "Failed to send reset email", "sent": False, "otp": otp}
 
 
 @router.post("/reset-password")
@@ -219,7 +220,7 @@ async def reset_password(data: ResetPasswordRequest, db: AsyncSession = Depends(
     stored_otp = await otp_store.get(f"reset_otp:{data.email}")
 
     if not stored_otp or stored_otp != data.otp:
-        raise HTTPException(status_code=400, detail="Invalid or expired OTP")
+        raise HTTPException(status_code=400, detail="Reset link expired or invalid")
 
     result = await db.execute(select(User).where(User.email == data.email))
     user = result.scalar_one_or_none()

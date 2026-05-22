@@ -57,3 +57,26 @@ async def send_otp_email(email: str, otp: str) -> bool:
     """
     return await send_email(email, subject, body)
 
+
+async def send_reset_password_email(email: str, token: str) -> bool:
+    subject = "Reset Your Khayal Password"
+    reset_link = f"https://khayal-ai.vercel.app/reset-password?token={token}"
+    body = f"""
+    <html>
+    <body style="font-family: Arial, sans-serif; padding: 20px; line-height: 1.6;">
+        <h2 style="color: #22c55e;">Khayal Healthcare</h2>
+        <p>You requested to reset your password. Click the button below to choose a new password:</p>
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="{reset_link}" style="background-color: #22c55e; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;">Reset Password</a>
+        </div>
+        <p>If the button doesn't work, you can copy and paste this link into your browser:</p>
+        <p style="word-break: break-all; color: #3b82f6;"><a href="{reset_link}">{reset_link}</a></p>
+        <p><strong>This link expires in 15 minutes.</strong></p>
+        <p style="color: #666; font-size: 12px; margin-top: 40px; border-top: 1px solid #eee; padding-top: 20px;">
+            If you didn't request a password reset, please ignore this email or contact support if you have concerns.
+        </p>
+    </body>
+    </html>
+    """
+    return await send_email(email, subject, body)
+
