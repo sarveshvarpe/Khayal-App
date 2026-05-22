@@ -39,7 +39,12 @@ export default function FitnessPage() {
         date: form.date,
       }
       const res = await api.post<FitnessProgress>("/fitness/progress", data)
-      setProgress(prev => [res, ...prev])
+      setProgress(prev => {
+        // Filter out any existing old entry for this same date in the UI
+        const filtered = prev.filter(p => p.date !== res.date)
+        // Append new entry and re-sort ascending by date
+        return [...filtered, res].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      })
       setForm({ weight: "", height: "", steps: "", calories: "", water_intake: "", sleep_hours: "", date: new Date().toISOString().split("T")[0] })
       toast.success("Progress saved!")
     } catch (err: any) {
@@ -58,13 +63,8 @@ export default function FitnessPage() {
     }
   }
 
-  const uniqueByDate: Record<string, FitnessProgress> = {}
-  progress.forEach(item => {
-    uniqueByDate[item.date] = item
-  })
-  const cleanedData = Object.values(uniqueByDate)
-
-  const chartData = cleanedData.slice(0, 14).reverse().map(p => ({
+  // The backend already returns unique, ascending records. We just take the last 14 (newest 14).
+  const chartData = progress.slice(-14).map(p => ({
     date: new Date(p.date).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
     steps: p.steps || 0,
     calories: p.calories || 0,
