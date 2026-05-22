@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 async def send_email(to: str, subject: str, body: str) -> bool:
     if not settings.SMTP_USER or not settings.SMTP_PASSWORD:
         logger.warning("SMTP credentials not configured — set SMTP_USER and SMTP_PASSWORD in .env")
-        return False
+        raise ValueError("SMTP credentials not configured in environment")
 
     msg = MIMEMultipart("alternative")
     msg["From"] = settings.SMTP_USER
@@ -33,13 +33,13 @@ async def send_email(to: str, subject: str, body: str) -> bool:
         return True
     except aiosmtplib.SMTPAuthenticationError as e:
         logger.error(f"SMTP authentication failed — check SMTP_USER/SMTP_PASSWORD in .env: {e}")
-        return False
+        raise e
     except aiosmtplib.SMTPConnectError as e:
         logger.error(f"SMTP connection failed to {settings.SMTP_HOST}:{settings.SMTP_PORT}: {e}")
-        return False
+        raise e
     except Exception as e:
         logger.error(f"Failed to send email to {to}: {type(e).__name__}: {e}")
-        return False
+        raise e
 
 
 async def send_otp_email(email: str, otp: str) -> bool:

@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from datetime import timedelta
 import random
 import json
 import uuid
+import traceback
 
 from app.core.database import get_db
 from app.core.security import (
@@ -92,10 +92,14 @@ async def send_otp(data: OTPRequest, db: AsyncSession = Depends(get_db)):
 
     otp = str(random.randint(100000, 999999))
     await otp_store.set(f"otp:{data.email}", otp, 300)
-    emailed = await send_otp_email(data.email, otp)
-    if emailed:
+    
+    try:
+        await send_otp_email(data.email, otp)
         return {"message": "OTP sent to your email", "sent": True}
-    return {"message": "OTP sent to your email", "sent": False, "otp": otp}
+    except Exception as e:
+        print("SEND OTP EMAIL ERROR:", str(e))
+        traceback.print_exc()
+        return {"message": f"Failed to send email: {str(e)}", "sent": False, "otp": otp}
 
 
 @router.post("/verify-otp")
@@ -124,10 +128,14 @@ async def resend_otp(data: OTPRequest, db: AsyncSession = Depends(get_db)):
 
     otp = str(random.randint(100000, 999999))
     await otp_store.set(f"otp:{data.email}", otp, 300)
-    emailed = await send_otp_email(data.email, otp)
-    if emailed:
+    
+    try:
+        await send_otp_email(data.email, otp)
         return {"message": "OTP resent to your email", "sent": True}
-    return {"message": "OTP resent to your email", "sent": False, "otp": otp}
+    except Exception as e:
+        print("RESEND OTP EMAIL ERROR:", str(e))
+        traceback.print_exc()
+        return {"message": f"Failed to resend email: {str(e)}", "sent": False, "otp": otp}
 
 
 @router.post("/google", response_model=TokenResponse)
@@ -201,15 +209,21 @@ async def refresh_token(data: RefreshTokenRequest, db: AsyncSession = Depends(ge
 async def forgot_password(data: ForgotPasswordRequest, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(User).where(User.email == data.email))
     user = result.scalar_one_or_none()
+    
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        # Security: Do not reveal if the email exists or not
+        return {"message": "If an account with this email exists, a reset link has been sent.", "sent": True}
 
     otp = str(uuid.uuid4())
     await otp_store.set(f"reset_otp:{data.email}", otp, 900)  # 15 mins
-    emailed = await send_reset_password_email(data.email, otp)
-    if emailed:
-        return {"message": "Password reset link sent to your email", "sent": True}
-    return {"message": "Failed to send reset email", "sent": False, "otp": otp}
+    
+    try:
+        await send_reset_password_email(data.email, otp)
+        return {"message": "If an account with this email exists, a reset link has been sent.", "sent": True}
+    except Exception as e:
+        print("FORGOT PASSWORD EMAIL ERROR:", str(e))
+        traceback.print_exc()
+        return {"message": f"SMTP authentication failed: {str(e)}", "sent": False}
 
 
 @router.post("/reset-password")
@@ -232,3 +246,15 @@ async def reset_password(data: ResetPasswordRequest, db: AsyncSession = Depends(
     await otp_store.delete(f"reset_otp:{data.email}")
 
     return {"message": "Password reset successfully"}
+
+
+@router.get("/test-email")
+async def test_email():
+    from app.core.email import send_email
+    try:
+        await send_email("developer@khayal.com", "Test Email", "<p>This is a test email</p>")
+        return {"success": True, "message": "Email sent successfully (or would have if real address)"}
+    except Exception as e:
+        print("TEST EMAIL ERROR:", str(e))
+        traceback.print_exc()
+        return {"success": False, "message": f"Exception occurred: {str(e)}"}
