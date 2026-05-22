@@ -22,7 +22,7 @@ async def get_fitness_progress(
     result = await db.execute(
         select(FitnessProgress)
         .where(FitnessProgress.user_id == current_user.id)
-        .order_by(FitnessProgress.date.desc())
+        .order_by(FitnessProgress.date.asc())
         .limit(30)
     )
     return result.scalars().all()
@@ -35,30 +35,26 @@ async def add_fitness_progress(
     current_user: User = Depends(get_current_user),
 ):
     try:
-        # Check if record already exists for today
+        # 1. Find all existing duplicate entries for the same user and date
         result = await db.execute(
             select(FitnessProgress).where(
                 FitnessProgress.user_id == current_user.id,
                 FitnessProgress.date == data.date
             )
         )
-        existing = result.scalar_one_or_none()
+        existing_rows = result.scalars().all()
 
-        if existing:
-            existing.weight = data.weight
-            existing.height = data.height
-            existing.steps = data.steps
-            existing.calories = data.calories
-            existing.water_intake = data.water_intake
-            existing.sleep_hours = data.sleep_hours
-            progress = existing
-        else:
-            progress = FitnessProgress(user_id=current_user.id, **data.model_dump())
-            db.add(progress)
+        # 2. Delete ALL matching rows to resolve duplicate MultipleResultsFound issues
+        for row in existing_rows:
+            await db.delete(row)
+
+        # 3. Create NEW fresh record
+        new_progress = FitnessProgress(user_id=current_user.id, **data.model_dump())
+        db.add(new_progress)
 
         await db.commit()
-        await db.refresh(progress)
-        return progress
+        await db.refresh(new_progress)
+        return new_progress
     except Exception as e:
         await db.rollback()
         raise HTTPException(status_code=500, detail=f"Failed to add fitness progress: {str(e)[:100]}")
