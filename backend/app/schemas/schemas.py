@@ -106,7 +106,7 @@ class AppointmentResponse(BaseModel):
     doctor_specialization: str
     appointment_date: date
     appointment_time: str
-    status: str
+    status: Optional[str] = "scheduled"
     notes: Optional[str] = None
     rating: Optional[int] = None
     created_at: datetime

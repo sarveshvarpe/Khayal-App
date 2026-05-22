@@ -132,17 +132,23 @@ const PrintableReport = forwardRef<HTMLDivElement, PrintableReportProps>(
                     <tr>
                       <th className="py-2 px-3 rounded-tl-lg">Doctor</th>
                       <th className="py-2 px-3">Specialty</th>
-                      <th className="py-2 px-3 rounded-tr-lg">Date</th>
+                      <th className="py-2 px-3">Date</th>
+                      <th className="py-2 px-3 rounded-tr-lg">Status</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {appointments.slice(0, 5).map((a, i) => (
-                      <tr key={a.id} className="border-b border-gray-100">
-                        <td className="py-3 px-3 font-medium text-black">{a.doctor_name}</td>
-                        <td className="py-3 px-3 text-gray-700">{a.doctor_specialization}</td>
-                        <td className="py-3 px-3 text-gray-700">{a.appointment_date}</td>
-                      </tr>
-                    ))}
+                    {appointments.slice(0, 5).map((a, i) => {
+                      const status = (a.status || "scheduled").toLowerCase();
+                      const statusColor = status === "cancelled" ? "text-red-500" : "text-green-500";
+                      return (
+                        <tr key={a.id} className="border-b border-gray-100">
+                          <td className="py-3 px-3 font-medium text-black">{a.doctor_name}</td>
+                          <td className="py-3 px-3 text-gray-700">{a.doctor_specialization}</td>
+                          <td className="py-3 px-3 text-gray-700">{a.appointment_date}</td>
+                          <td className={`py-3 px-3 font-medium capitalize ${statusColor}`}>{status}</td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               ) : (

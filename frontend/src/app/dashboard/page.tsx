@@ -176,10 +176,12 @@ export default function DashboardPage() {
                     <p className="font-medium text-sm">{a.doctor_name}</p>
                     <p className="text-xs text-gray-500">{a.doctor_specialization} - {a.appointment_date}</p>
                   </div>
-                  <span className={`text-xs px-2 py-1 rounded-full ${
-                    a.status === "scheduled" ? "bg-green-500/20 text-green-500" : "bg-gray-500/20 text-gray-500"
+                  <span className={`text-xs px-2 py-1 rounded-full capitalize ${
+                    (a.status || "scheduled").toLowerCase() === "scheduled" ? "bg-green-500/20 text-green-500" : 
+                    (a.status || "").toLowerCase() === "cancelled" ? "bg-red-500/20 text-red-500" :
+                    "bg-gray-500/20 text-gray-500"
                   }`}>
-                    {a.status}
+                    {a.status || "Scheduled"}
                   </span>
                 </div>
               ))}
