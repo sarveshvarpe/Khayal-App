@@ -80,13 +80,28 @@ class ApiClient {
     }
   }
 
+  private async handleResponse<T>(res: Response, path: string, method: string): Promise<T> {
+    if (res.status === 401) {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("access_token")
+        localStorage.removeItem("refresh_token")
+        window.location.href = "/login"
+      }
+      throw new Error("Session expired. Please log in again.")
+    }
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: "Request failed" }))
+      throw new Error(err.detail || `${method} ${path} failed: ${res.status}`)
+    }
+    return res.json()
+  }
+
   async get<T>(path: string): Promise<T> {
     await this.refreshTokenIfNeeded()
     const res = await fetch(`${this.baseUrl}${path}`, {
       headers: this.getHeaders(),
     })
-    if (!res.ok) throw new Error(`GET ${path} failed: ${res.status}`)
-    return res.json()
+    return this.handleResponse<T>(res, path, "GET")
   }
 
   async post<T>(path: string, body?: unknown): Promise<T> {
@@ -96,11 +111,7 @@ class ApiClient {
       headers: this.getHeaders(),
       body: body ? JSON.stringify(body) : undefined,
     })
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({ detail: "Request failed" }))
-      throw new Error(err.detail || `POST ${path} failed: ${res.status}`)
-    }
-    return res.json()
+    return this.handleResponse<T>(res, path, "POST")
   }
 
   async put<T>(path: string, body?: unknown): Promise<T> {
@@ -110,8 +121,7 @@ class ApiClient {
       headers: this.getHeaders(),
       body: body ? JSON.stringify(body) : undefined,
     })
-    if (!res.ok) throw new Error(`PUT ${path} failed: ${res.status}`)
-    return res.json()
+    return this.handleResponse<T>(res, path, "PUT")
   }
 
   async delete<T>(path: string): Promise<T> {
@@ -120,8 +130,7 @@ class ApiClient {
       method: "DELETE",
       headers: this.getHeaders(),
     })
-    if (!res.ok) throw new Error(`DELETE ${path} failed: ${res.status}`)
-    return res.json()
+    return this.handleResponse<T>(res, path, "DELETE")
   }
 
   async upload<T>(path: string, file: File): Promise<T> {
@@ -136,11 +145,7 @@ class ApiClient {
       headers,
       body: formData,
     })
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({ detail: "Upload failed" }))
-      throw new Error(err.detail || `UPLOAD ${path} failed: ${res.status}`)
-    }
-    return res.json()
+    return this.handleResponse<T>(res, path, "UPLOAD")
   }
 }
 
