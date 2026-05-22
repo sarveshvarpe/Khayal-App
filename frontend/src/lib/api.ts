@@ -1,4 +1,12 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1"
+// Centralized API base helper
+const getApiBase = () => {
+  const url = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+  // Remove trailing slashes and any existing /api/v1 to avoid duplication
+  const cleanUrl = url.replace(/\/+$/, "").replace(/\/api\/v1$/, "")
+  return `${cleanUrl}/api/v1`
+}
+
+const API_BASE = getApiBase()
 
 class ApiClient {
   private baseUrl: string
