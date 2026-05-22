@@ -58,7 +58,13 @@ export default function FitnessPage() {
     }
   }
 
-  const chartData = progress.slice(0, 14).reverse().map(p => ({
+  const uniqueByDate: Record<string, FitnessProgress> = {}
+  progress.forEach(item => {
+    uniqueByDate[item.date] = item
+  })
+  const cleanedData = Object.values(uniqueByDate)
+
+  const chartData = cleanedData.slice(0, 14).reverse().map(p => ({
     date: new Date(p.date).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
     steps: p.steps || 0,
     calories: p.calories || 0,

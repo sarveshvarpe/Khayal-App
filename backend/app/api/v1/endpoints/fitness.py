@@ -22,10 +22,16 @@ async def get_fitness_progress(
     result = await db.execute(
         select(FitnessProgress)
         .where(FitnessProgress.user_id == current_user.id)
-        .order_by(FitnessProgress.date.asc())
-        .limit(30)
+        .order_by(FitnessProgress.date.asc(), FitnessProgress.id.asc())
     )
-    return result.scalars().all()
+    all_records = result.scalars().all()
+    
+    # Deduplicate in memory, keeping the latest by ID for each date
+    unique_records = {}
+    for record in all_records:
+        unique_records[record.date] = record
+        
+    return list(unique_records.values())[-30:]
 
 
 @router.post("/progress")
