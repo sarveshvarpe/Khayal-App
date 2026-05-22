@@ -24,6 +24,12 @@ const getApiBase = () => {
 
 const API_BASE = getApiBase()
 
+if (typeof window !== "undefined") {
+  console.log("=== KHAYAL FRONTEND DEBUG ===")
+  console.log("API_BASE =", API_BASE)
+  console.log("===============================")
+}
+
 class ApiClient {
   private baseUrl: string
 
