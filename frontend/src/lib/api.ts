@@ -2,14 +2,19 @@
 const getApiBase = () => {
   let url = process.env.NEXT_PUBLIC_API_URL || "https://khayal-app-production.up.railway.app"
   
-  // Force HTTPS in production to prevent mixed-content blocked errors
-  if (url.startsWith("http://") && !url.includes("localhost") && !url.includes("127.0.0.1")) {
-    url = url.replace("http://", "https://")
-  }
-  
-  // If the user entered just the domain without protocol
-  if (!url.startsWith("http")) {
-    url = "https://" + url
+  // If running on Vercel in the browser, forcefully ignore localhost and use production Railway
+  if (typeof window !== "undefined" && window.location.hostname.includes("vercel.app")) {
+    url = "https://khayal-app-production.up.railway.app"
+  } else {
+    // Force HTTPS in production to prevent mixed-content blocked errors
+    if (url.startsWith("http://") && !url.includes("localhost") && !url.includes("127.0.0.1")) {
+      url = url.replace("http://", "https://")
+    }
+    
+    // If the user entered just the domain without protocol
+    if (!url.startsWith("http")) {
+      url = "https://" + url
+    }
   }
 
   // Remove trailing slashes and any existing /api/v1 to avoid duplication

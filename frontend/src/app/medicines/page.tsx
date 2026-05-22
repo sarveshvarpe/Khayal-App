@@ -82,10 +82,14 @@ export default function MedicinesPage() {
 
       // Store prescription image URL (served from backend)
       let envUrl = process.env.NEXT_PUBLIC_API_URL || "https://khayal-app-production.up.railway.app"
-      if (envUrl.startsWith("http://") && !envUrl.includes("localhost") && !envUrl.includes("127.0.0.1")) {
-        envUrl = envUrl.replace("http://", "https://")
+      if (typeof window !== "undefined" && window.location.hostname.includes("vercel.app")) {
+        envUrl = "https://khayal-app-production.up.railway.app"
+      } else {
+        if (envUrl.startsWith("http://") && !envUrl.includes("localhost") && !envUrl.includes("127.0.0.1")) {
+          envUrl = envUrl.replace("http://", "https://")
+        }
+        if (!envUrl.startsWith("http")) envUrl = "https://" + envUrl
       }
-      if (!envUrl.startsWith("http")) envUrl = "https://" + envUrl
       
       const backendBase = envUrl.replace(/\/api\/v1\/?$/, "").replace(/\/+$/, "")
       setPrescriptionImageUrl(`${backendBase}${res.image_url}`)
