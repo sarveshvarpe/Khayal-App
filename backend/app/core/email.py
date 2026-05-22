@@ -13,14 +13,14 @@ try:
     conf = ConnectionConfig(
         MAIL_USERNAME=settings.SMTP_USER,
         MAIL_PASSWORD=settings.SMTP_PASSWORD,
-        MAIL_FROM=settings.SMTP_USER,  # Always fallback to SMTP_USER as requested
-        MAIL_PORT=settings.SMTP_PORT or 587,
-        MAIL_SERVER=settings.SMTP_HOST or "smtp.gmail.com",
-        MAIL_STARTTLS=True,
-        MAIL_SSL_TLS=False,
+        MAIL_FROM=settings.SMTP_USER,
+        MAIL_PORT=465,
+        MAIL_SERVER="smtp.gmail.com",
+        MAIL_STARTTLS=False,
+        MAIL_SSL_TLS=True,
         USE_CREDENTIALS=True,
         VALIDATE_CERTS=True,
-        TIMEOUT=60
+        TIMEOUT=120
     )
     fast_mail = FastMail(conf)
 except Exception as e:
@@ -43,16 +43,19 @@ async def send_email(to: str, subject: str, body: str) -> bool:
         subtype=MessageType.html
     )
     
-    try:
-        logger.info(f"Connecting to SMTP {conf.MAIL_SERVER}:{conf.MAIL_PORT} for {to}")
-        await fast_mail.send_message(message)
-        logger.info(f"Email sent successfully to {to}")
-        return True
-    except Exception as e:
-        logger.error(f"Failed to send email to {to}: {type(e).__name__}: {e}")
-        print("EMAIL ERROR:", str(e))
-        traceback.print_exc()
-        raise e
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            logger.info(f"Connecting to SMTP {conf.MAIL_SERVER}:{conf.MAIL_PORT} for {to} (Attempt {attempt+1}/{max_retries})")
+            await fast_mail.send_message(message)
+            logger.info(f"Email sent successfully to {to}")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to send email to {to} on attempt {attempt+1}: {type(e).__name__}: {e}")
+            print(f"EMAIL ERROR (Attempt {attempt+1}):", str(e))
+            if attempt == max_retries - 1:
+                traceback.print_exc()
+                raise e
 
 
 async def send_otp_email(email: str, otp: str) -> bool:
