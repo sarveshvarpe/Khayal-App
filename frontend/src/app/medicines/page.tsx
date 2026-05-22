@@ -81,7 +81,8 @@ export default function MedicinesPage() {
       }>("/medicines/scan-prescription", file)
 
       // Store prescription image URL (served from backend)
-      const backendBase = process.env.NEXT_PUBLIC_API_URL?.replace("/api/v1", "") || "http://localhost:8000"
+      const envUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+      const backendBase = envUrl.replace(/\/api\/v1\/?$/, "").replace(/\/+$/, "")
       setPrescriptionImageUrl(`${backendBase}${res.image_url}`)
 
       setOcrText(res.ocr_text)

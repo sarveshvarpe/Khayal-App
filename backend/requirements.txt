@@ -18,5 +18,4 @@ google-auth
 google-auth-oauthlib
 google-auth-httplib2
 jinja2
-httpx
-google-auth
+httpx
