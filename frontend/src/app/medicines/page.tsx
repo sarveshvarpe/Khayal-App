@@ -81,7 +81,12 @@ export default function MedicinesPage() {
       }>("/medicines/scan-prescription", file)
 
       // Store prescription image URL (served from backend)
-      const envUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+      let envUrl = process.env.NEXT_PUBLIC_API_URL || "https://khayal-app-production.up.railway.app"
+      if (envUrl.startsWith("http://") && !envUrl.includes("localhost") && !envUrl.includes("127.0.0.1")) {
+        envUrl = envUrl.replace("http://", "https://")
+      }
+      if (!envUrl.startsWith("http")) envUrl = "https://" + envUrl
+      
       const backendBase = envUrl.replace(/\/api\/v1\/?$/, "").replace(/\/+$/, "")
       setPrescriptionImageUrl(`${backendBase}${res.image_url}`)
 

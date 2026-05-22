@@ -1,6 +1,17 @@
 // Centralized API base helper
 const getApiBase = () => {
-  const url = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+  let url = process.env.NEXT_PUBLIC_API_URL || "https://khayal-app-production.up.railway.app"
+  
+  // Force HTTPS in production to prevent mixed-content blocked errors
+  if (url.startsWith("http://") && !url.includes("localhost") && !url.includes("127.0.0.1")) {
+    url = url.replace("http://", "https://")
+  }
+  
+  // If the user entered just the domain without protocol
+  if (!url.startsWith("http")) {
+    url = "https://" + url
+  }
+
   // Remove trailing slashes and any existing /api/v1 to avoid duplication
   const cleanUrl = url.replace(/\/+$/, "").replace(/\/api\/v1$/, "")
   return `${cleanUrl}/api/v1`
