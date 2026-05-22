@@ -77,12 +77,7 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="text-sm font-medium">Password</label>
-                <Link href="/forgot-password" className="text-xs text-primary-500 hover:underline">
-                  Forgot Password?
-                </Link>
-              </div>
+              <label className="text-sm font-medium mb-1 block">Password</label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <Input
@@ -100,6 +95,14 @@ export default function LoginPage() {
                 >
                   {showPassword ? <EyeOff className="w-4 h-4 text-gray-400" /> : <Eye className="w-4 h-4 text-gray-400" />}
                 </button>
+              </div>
+              <div className="flex justify-end mt-2">
+                <Link 
+                  href="/forgot-password" 
+                  className="text-cyan-400 hover:text-cyan-300 hover:underline text-sm cursor-pointer transition-all duration-200"
+                >
+                  Forgot Password?
+                </Link>
               </div>
             </div>
 
